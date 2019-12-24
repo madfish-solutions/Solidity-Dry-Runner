@@ -2,22 +2,22 @@
 pragma solidity >=0.4.21 <0.6.0;
 
 contract Math {
-    function add(uint a, uint b) public pure returns (uint c) {
+    function add(int a, int b) public pure returns (int c) {
         c = a + b;
         require(c >= a);
     }
 
-    function sub(uint a, uint b) public pure returns (uint c) {
+    function sub(int a, int b) public pure returns (int c) {
         require(b <= a);
         c = a - b;
     }
 
-    function mul(uint a, uint b) public pure returns (uint c) {
+    function mul(int a, int b) public pure returns (int c) {
         c = a * b;
         require(a == 0 || c / a == b);
     }
 
-    function div(uint a, uint b) public pure returns (uint c) {
+    function div(int a, int b) public pure returns (int c) {
         require(b > 0);
         c = a / b;
     }
