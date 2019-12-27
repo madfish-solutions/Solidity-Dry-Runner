@@ -4,7 +4,7 @@ const exec = require('child_process');
 const tezAccounts = JSON.parse(fs.readFileSync("./test/accounts.json"));
 
 function calculateOnLigo(op, a, b) {
-  return exec.execSync(`ligo run-function $PWD/contracts/Math.ligo ${op} ' record a = ${a}; b = ${b}; end '  `, {encoding: "utf8"});
+  return exec.execSync(`ligo run-function $PWD/contracts/Math.ligo ${op} ' ( ${a} , ${b} )'  `, {encoding: "utf8"});
 }
 
 contract("Math", async accounts => {

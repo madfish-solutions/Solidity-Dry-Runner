@@ -4,15 +4,21 @@ const exec = require('child_process');
 const tezAccounts = JSON.parse(fs.readFileSync("./test/accounts.json"));
 
 function contractOut2Json(output) {
-  const expr = /tuple\[(\s*)list\[(?<operations>(.|\n)*)\](\s*)record\[(?<state>(.|\n)*)\](\s*)\]/;
-  const {groups: {operations, state}} = expr.exec(output);
-  return {operations: operations, state: state}; 
+  output = output.replace(/@/g, '')
+  output = output.replace(/\+/g, '')
+  output = output.replace(/->/g, ':')
+  output = output.replace(/\[/g, '{')
+  output = output.replace(/\(/g, '[')
+  output = output.replace(/\]/g, '}')
+  output = output.replace(/\)/g, ']')
+  output = output.replace(/=/g, ':')
+  output = output.replace(/;/g, ',')
+  output = output.replace(/balances/g, '"balances"')
+  return JSON.parse(output); 
 }
 
 function parseTezBalances(output, address) {
-  const expr = new RegExp(`balances -> map\\[(\\s|\\n|.)*@\"${address}\" -> \\+(?<balance>.*)(\\s|.)*\\]`);
-  const {groups: {balance}} = expr.exec(output);
-  return balance; 
+  return output["balances"][address]; 
 }
 
 
@@ -26,21 +32,21 @@ contract("SimpleCoin", async accounts => {
       });
   
     it("should put 1000000 SimpleCoin in the first account", async () => {
-        let ethBalance = await ethSimpleCoin.balances.call(accounts[0]);
-        let tezBalance =  parseTezBalances(tezSimpleCoin.state, tezAccounts[0]);
-        assert.equal(ethBalance.valueOf(), tezBalance.valueOf());
-      });
+      let ethBalance = await ethSimpleCoin.balances.call(accounts[0]);
+      let tezBalance =  parseTezBalances(tezSimpleCoin[1], tezAccounts[0]);
+      assert.equal(ethBalance.valueOf(), tezBalance.valueOf());
+    });
       
-      it("should transfer 1000 SimpleCoin to the second account", async () => {
-        ethSimpleCoin.transfer(accounts[1], 1000);
-        let tezSimpleCoinOut =  exec.execSync(`ligo dry-run $PWD/contracts/SimpleCoin.ligo --sender \"${tezAccounts[0]}\" --syntax pascaligo main \"Transfer(record receiver = (\\"${tezAccounts[1]}\\": address ); sent_amount = 1000n; end)\" \"record balances = map (\\"${tezAccounts[0]}\\" : address ) -> 1000000n ; end; end\"`, {encoding: "utf8"});
-        tezSimpleCoin = contractOut2Json(tezSimpleCoinOut);
+    it("should transfer 1000 SimpleCoin to the second account", async () => {
+      ethSimpleCoin.transfer(accounts[1], 1000);
+      let tezSimpleCoinOut =  exec.execSync(`ligo dry-run $PWD/contracts/SimpleCoin.ligo --sender \"${tezAccounts[0]}\" --syntax pascaligo main \"Transfer(record receiver = (\\"${tezAccounts[1]}\\": address ); sent_amount = 1000n; end)\" \"record balances = map (\\"${tezAccounts[0]}\\" : address ) -> 1000000n ; end; end\"`, {encoding: "utf8"});
+      tezSimpleCoin = contractOut2Json(tezSimpleCoinOut);
 
-        let ethBalance0 = await ethSimpleCoin.balances.call(accounts[0]);
-        let ethBalance1 = await ethSimpleCoin.balances.call(accounts[1]);
-        let tezBalance0 =  parseTezBalances(tezSimpleCoin.state, tezAccounts[0]);
-        let tezBalance1 =  parseTezBalances(tezSimpleCoin.state, tezAccounts[1]);
-        assert.equal(ethBalance0.valueOf(), tezBalance0.valueOf());
-        assert.equal(ethBalance1.valueOf(), tezBalance1.valueOf());
-      });
+      let ethBalance0 = await ethSimpleCoin.balances.call(accounts[0]);
+      let ethBalance1 = await ethSimpleCoin.balances.call(accounts[1]);
+      let tezBalance0 =  parseTezBalances(tezSimpleCoin[1], tezAccounts[0]);
+      let tezBalance1 =  parseTezBalances(tezSimpleCoin[1], tezAccounts[1]);
+      assert.equal(ethBalance0.valueOf(), tezBalance0.valueOf());
+      assert.equal(ethBalance1.valueOf(), tezBalance1.valueOf());
+    });
 });
