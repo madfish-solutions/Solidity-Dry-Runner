@@ -3,6 +3,10 @@ const fs = require("fs");
 const exec = require('child_process');
 const tezAccounts = JSON.parse(fs.readFileSync("./test/accounts.json"));
 
+function getBalanceOnLigo() {
+  return exec.execSync(`ligo run-function $PWD/contracts/Globals.ligo getBalance ' ( Unit ) '  `, {encoding: "utf8"});
+}
+
 contract("Globals", async accounts => {
     let ethGlobals;
     let tezGlobals;
@@ -10,11 +14,11 @@ contract("Globals", async accounts => {
         ethGlobals = await GlobalsSrc.deployed();
       });
       
-    it("should get", async () => {
-      let counter = 10;
+    it("should get balance", async () => {
       let result = await ethGlobals.getBalance.call();
-      assert.equal(result.valueOf(), result.valueOf());
-      // tezGlobals = iterateOnLigo("iterate", counter);
-      // assert.equal(result.valueOf(), parseInt(tezGlobals)); 
+      assert.equal(0, result.valueOf());
+
+      tezGlobals = getBalanceOnLigo();
+      assert.equal(4000000000000, parseInt(tezGlobals)); 
     });
   });

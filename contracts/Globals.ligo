@@ -4,7 +4,7 @@ type storage is record
   time : timestamp;
 end;
 
-function getBalance (const i : nat) : tez is
+function getBalance (const i : unit) : tez is
   block { skip } with balance
 
 function setMessageInfo (const s : storage) : storage is
