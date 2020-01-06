@@ -5,19 +5,19 @@ end;
 function getDynamicArrayElement (const array : map(nat, bytes); const index : nat) : bytes is
   block { 
     skip
-   } with case array[index] of | None -> ("00": bytes)  | Some(x) -> x end
+   } with get_force(index, array)
 
 function getStaticArrayElement (const array : map(nat, address); const index : nat) : address is
   block { 
     skip
-   } with case array[index] of | None -> ("0x0" : address) | Some(x) -> x end
+   } with get_force(index, array)
 
-function getDynamicArrayLength (const array : map(nat, bool); const index : nat) : nat is
+function getDynamicArrayLength (const array : map(nat, bool)) : nat is
   block { 
     skip
    } with size(array)
 
-function getStaticArrayLength (const array : map(nat, int); const index : nat) : nat is
+function getStaticArrayLength (const array : map(nat, int)) : nat is
   block { 
     skip
    } with size(array)
