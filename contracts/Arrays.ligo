@@ -24,7 +24,7 @@ function getStaticArrayLength (const array : map(nat, int)) : nat is
 
 function deleteElement (var array : map(nat, bytes); const index : nat) : map(nat, bytes) is
   block { 
-    remove index from map array
+    array[index] := ("0000" : bytes);
    } with array
 
 function pushElements (const counter : int) : map(nat, int) is

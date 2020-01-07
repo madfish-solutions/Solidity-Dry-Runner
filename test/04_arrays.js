@@ -2,7 +2,9 @@ const ArraysSrc = artifacts.require("Arrays");
 const fs = require("fs");
 const exec = require('child_process');
 const tezAccounts = JSON.parse(fs.readFileSync("./test/accounts.json"));
-// NOTE: Ligo do not fail when static array has wrong length
+// NOTE: 
+// 1. Ligo does not fail when static array has wrong length
+// 2. Delete makes hole in Ligo maps meanwhile in Solidity deleted value is set to 0.
 
 const PREFIX = "Returned error: VM Exception while processing transaction: ";
 
@@ -31,7 +33,7 @@ function tryCatchSync(func, message) {
 
 function toLigoBytesArray(array) {
   let entry = "";
-  array.forEach((val, i) => entry += ` ${i}n -> ("${val.substring(val.length - 2)}" : bytes) ;`)
+  array.forEach((val, i) => entry += ` ${i}n -> ("${val.substring(2)}" : bytes) ;`)
   if (array.length > 0) {
     return `map ${entry} end`;
   }
@@ -66,6 +68,11 @@ function toLigoBoolArray(array) {
 function getDynamicArrayElementOnLigo(array, index) {
   let ligoArray = toLigoBytesArray(array);
   return exec.execSync(`ligo run-function $PWD/contracts/Arrays.ligo getDynamicArrayElement ' ( ${ligoArray}, ${index}n ) '  `, {encoding: "utf8"});
+}
+
+function deleteElementOnLigo(array, index) {
+  let ligoArray = toLigoBytesArray(array);
+  return exec.execSync(`ligo run-function $PWD/contracts/Arrays.ligo deleteElement ' ( ${ligoArray}, ${index}n ) '  `, {encoding: "utf8"});
 }
 
 function getDynamicArrayLengthOnLigo(array, index) {
@@ -163,4 +170,27 @@ contract("Arrays", async accounts => {
       tezArrays = getStaticArrayLengthOnLigo(array);
       assert.equal(parseInt(tezArrays.trim()), parseInt(result.valueOf()));
     });
+
+    it("should delete element of dynamic array", async () => {
+      let array =  ["0x0011","0xaa34", "0x11ff"];
+      let index = 1;
+      let result = await ethArrays.deleteElement.call(array, index);
+      tezArrays = deleteElementOnLigo(array, index);
+      let arrayRes = [...array];
+      arrayRes[index] = "0x0000";
+      assert.equal(JSON.stringify(arrayRes), JSON.stringify(result.valueOf()));
+
+      // array =  ["0x00","0xaa", "0xff", "0xf5","0xad", "0x00", "0x4a"];
+      // index = 5;
+      // result = await ethArrays.getDynamicArrayElement.call(array, index);
+      // tezArrays = deleteElementOnLigo(array, index);
+      // assert.equal(tezArrays.trim(), result.valueOf());
+
+      // array =  [];
+      // index = 5;
+      
+      // result = await tryCatchAsync( ethArrays.getDynamicArrayElement.call(array, index), "invalid opcode");
+      // tezArrays = tryCatchSync(getDynamicArrayElementOnLigo.bind(null, array, index), "Command failed: ligo run-function $PWD/contracts/Arrays.ligo getDynamicArrayElement ' ( (map end: map(nat, bytes)), 5n ) '  \nligo: Execution terminated with failwith");
+    });
+
   });
