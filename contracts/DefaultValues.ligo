@@ -20,7 +20,7 @@ function getUint (const u : unit) : nat is
   block {skip} with 0n
 
 function getAddress (const u : unit) : address is
-  block {skip} with ("0": address)
+  block {skip} with ("0": address) // does not work
 
 function getArray (const u : unit) : map(nat, int) is
   block {skip} with (map end: map(nat, int))
