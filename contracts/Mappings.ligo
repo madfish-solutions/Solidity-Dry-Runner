@@ -27,7 +27,7 @@ function mapGetAaddresses (const key : int; const value : nat; const s : storage
     end;
     const owner : address = case subMap[value] of 
     | Some(m) -> m
-    | None -> ("0x0": address)
+    | None -> ("tz1iTHHGZSFAEDmk4bt7EqgBjw5Hj7vQjL7b": address)
     end;
    } with owner
 
