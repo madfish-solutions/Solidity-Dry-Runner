@@ -14,6 +14,7 @@ function contractOut2Json(output) {
   output = output.replace(/=/g, ':')
   output = output.replace(/;/g, ',')
   output = output.replace(/balances/g, '"balances"')
+  output = output.replace(/initialized/g, '"initialized"')
   return JSON.parse(output); 
 }
 
@@ -27,7 +28,7 @@ contract("SimpleCoin", async accounts => {
     let tezSimpleCoin;
     before(async () => {
         ethSimpleCoin = await SimpleCoin.deployed();
-        let tezSimpleCoinOut =  exec.execSync(`ligo dry-run $PWD/contracts/SimpleCoin.ligo --sender \"${tezAccounts[0]}\" --syntax pascaligo main \" Default( False )\"  \"record balances = ((map end) : map(address, nat)); end\"`, {encoding: "utf8"});
+        let tezSimpleCoinOut =  exec.execSync(`ligo dry-run $PWD/contracts/SimpleCoin.ligo --sender \"${tezAccounts[0]}\" --syntax pascaligo main \" Default( False )\"  \"record balances = ((map end) : map(address, nat)); initialized = (False: bool); end\"`, {encoding: "utf8"});
         tezSimpleCoin = contractOut2Json(tezSimpleCoinOut);
       });
   
@@ -39,7 +40,7 @@ contract("SimpleCoin", async accounts => {
       
     it("should transfer 1000 SimpleCoin to the second account", async () => {
       ethSimpleCoin.transfer(accounts[1], 1000);
-      let tezSimpleCoinOut =  exec.execSync(`ligo dry-run $PWD/contracts/SimpleCoin.ligo --sender \"${tezAccounts[0]}\" --syntax pascaligo main \"Transfer(record receiver = (\\"${tezAccounts[1]}\\": address ); sent_amount = 1000n; end)\" \"record balances = map (\\"${tezAccounts[0]}\\" : address ) -> 1000000n ; end; end\"`, {encoding: "utf8"});
+      let tezSimpleCoinOut =  exec.execSync(`ligo dry-run $PWD/contracts/SimpleCoin.ligo --sender \"${tezAccounts[0]}\" --syntax pascaligo main \"Transfer(record receiver = (\\"${tezAccounts[1]}\\": address ); sent_amount = 1000n; end)\" \"record balances = map (\\"${tezAccounts[0]}\\" : address ) -> 1000000n ; end; initialized = (True: bool); end\"`, {encoding: "utf8"});
       tezSimpleCoin = contractOut2Json(tezSimpleCoinOut);
 
       let ethBalance0 = await ethSimpleCoin.balances.call(accounts[0]);

@@ -1,5 +1,6 @@
 type state is record
   balances: map(address, nat);
+  initialized: bool;
 end;
 
 type transfer_type is record
@@ -17,6 +18,7 @@ type action is
 
 function constructor_f (const this : state) : (state) is
   block {
+    if this.initialized then failwith("Is initialized") else this.initialized:= False;
     const tmp_0 : map(address, nat) = this.balances;
     tmp_0[sender]:= 1000000n;
     this.balances := tmp_0;
@@ -24,6 +26,7 @@ function constructor_f (const this : state) : (state) is
 
 function transfer_f (const a : transfer_type; const this : state) : (state) is
   block {
+    if this.initialized then {skip} else failwith("Is not initialized");
     const receiver : address = a.receiver;
     const reserved__amount : nat = a.sent_amount;
     if ((case this.balances[sender] of | None -> 0n | Some(x) -> x end) >= reserved__amount) then block {
